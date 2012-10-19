@@ -11,7 +11,7 @@ namespace LedCubeClient
         public delegate void CurrentFrameChangedDel(int frame);
         public event CurrentFrameChangedDel CurrentFrameChanged;
 
-        readonly List<int[]> frames = new List<int[]>();
+        readonly List<byte[]> frames = new List<byte[]>();
         public bool IsRunning { get; private set; }
         private int currentFrame = -1;
 
@@ -29,7 +29,7 @@ namespace LedCubeClient
             }
         }
         
-        public int[] GetCurrentFrame()
+        public byte[] GetCurrentFrame()
         {
             return frames[currentFrame];
         }
