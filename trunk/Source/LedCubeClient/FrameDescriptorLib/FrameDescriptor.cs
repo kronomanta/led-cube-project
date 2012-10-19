@@ -5,18 +5,18 @@ namespace FrameDescriptorLib
 {
     public class FrameDescriptor
     {
-        public int[] Frame;
+        public byte[] Frame;
         public int Count;
 
         public FrameDescriptor()
         {
-            Frame = new int[0];
+            Frame = null;
             Count = 0;
         }
 
-        public FrameDescriptor(int[] m, int c)
+        public FrameDescriptor(byte[] m, int c)
         {
-            Frame = (int[])m.Clone();
+            Frame = (byte[])m.Clone();
             Count = c;
         }
     }
