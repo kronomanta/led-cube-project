@@ -6,7 +6,7 @@ using FrameDescriptorLib;
 
 namespace LedCubeClient
 {
-    class AnimationHandler
+    public class AnimationHandler
     {
         public delegate void CurrentFrameChangedDel(int frame);
         public event CurrentFrameChangedDel CurrentFrameChanged;
@@ -38,27 +38,33 @@ namespace LedCubeClient
 
         public void LoadFrames(string path)
         {
-            if (!File.Exists(path)) return;
+            frames.Clear();
+            if (!File.Exists(path)) throw new FileNotFoundException("File not found: \n"+path);
             try
             {
+                
                 var frameCont = MyXmlSerializer.Deserialize<FrameDescriptorContainer>(path);
-                if (frameCont == null) return;
-
-                foreach (var item in frameCont.Frames)
+                if (frameCont != null)
                 {
-                    for (int i = 0; i < item.Count; i++)
+                    foreach (var item in frameCont.Frames)
                     {
-                        frames.Add(item.Frame);
+                        for (int i = 0; i < item.Count; i++)
+                        {
+                            frames.Add(item.Frame);
+                        }
                     }
+                    CurrentFrame = 0;
                 }
 
-                CurrentFrame = 0;
-
+                if(frameCont == null || frames.Count == 0)
+                    throw new FileLoadException("No frame was loaded");
             }
             catch (SerializationException e){
                 ClientLogger.WriteLine(string.Format("SerializationException: {0}", e.Message));
+                throw;
             } catch(Exception e){
                 ClientLogger.WriteLine(string.Format("Exception: {0}", e.Message));
+                throw;
             }
         }
 

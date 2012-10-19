@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Text;
 using System.IO.Ports;
 
@@ -10,15 +12,28 @@ namespace LedCubeClient.CommunicationSystem
         private readonly SerialPort comPort = new SerialPort();
 
         #region Manager Enums
+
         /// <summary>
         /// enumeration to hold our transmission types
         /// </summary>
-        public enum TransmissionType { Text, Hex }
+        public enum TransmissionType
+        {
+            Text,
+            Hex
+        }
 
         /// <summary>
         /// enumeration to hold our message types
         /// </summary>
-        public enum MessageType { Incoming, Outgoing, Normal, Warning, Error };
+        public enum MessageType
+        {
+            Incoming,
+            Outgoing,
+            Normal,
+            Warning,
+            Error
+        };
+
         #endregion
 
         #region Manager Properties
@@ -56,7 +71,10 @@ namespace LedCubeClient.CommunicationSystem
         /// <summary>
         /// property to check whether port is open
         /// </summary>
-        public bool IsPortOpen { get { return comPort.IsOpen; } }
+        public bool IsPortOpen
+        {
+            get { return comPort.IsOpen; }
+        }
 
         /// <summary>
         /// property to hold our TransmissionType
@@ -74,9 +92,10 @@ namespace LedCubeClient.CommunicationSystem
         /// property to hold our protocol type
         /// </summary>
         private IProtocol protocol;
+
         public IProtocol Protocol
         {
-            get { return protocol; } 
+            get { return protocol; }
             set
             {
                 if (protocol == value) return;
@@ -120,9 +139,29 @@ namespace LedCubeClient.CommunicationSystem
             //add event handler
             comPort.DataReceived += ComPortDataReceived;
         }
+
         #endregion
 
-        #region WriteDataWithRfc1055
+        #region WriteDataWithProtocol
+        public void WriteDataWithProtocol(string msg)
+        {
+            try
+            {
+                //first make sure the port is open
+                //if its not open then open it
+                if (!comPort.IsOpen) 
+                    comPort.Open();
+                if(!comPort.IsOpen) throw new Exception("Failed to open the port " + PortName);
+                //send the message tothe port
+                Protocol.SendPacket(msg);
+            }catch(Exception ex)
+            {
+                throw new Exception(MessageType.Error + " | " + ex.Message);
+            }
+        }
+        #endregion
+
+        #region Read/Write char
 
         private void WriteChar(char c)
         {
@@ -132,17 +171,6 @@ namespace LedCubeClient.CommunicationSystem
         private char ReadChar()
         {
             return (char)comPort.ReadChar();
-        }
-
-        public void WriteDataWithRfc1055(string msg)
-        {
-            try
-            {
-                
-            }catch(Exception e)
-            {
-                throw new Exception("Error: "+e.Message);
-            }
         }
         #endregion
 
@@ -178,7 +206,7 @@ namespace LedCubeClient.CommunicationSystem
             }
         }catch(Exception ex)
         {
-            throw new Exception("Type: " + MessageType.Error + " | " + ex.Message);
+            throw new Exception(MessageType.Error + " | " + ex.Message);
         }
     }
         #endregion
@@ -243,13 +271,13 @@ namespace LedCubeClient.CommunicationSystem
                 //now open the port
                 comPort.Open();
                 //display message
-                HistoryLog.Add("Type: " + MessageType.Normal + " | Port opened at " + DateTime.Now);
+                HistoryLog.Add(MessageType.Normal + " | Port opened at " + DateTime.Now);
                 //return true
                 return true;
             }
             catch (Exception ex)
             {
-                HistoryLog.Add("Type: " + MessageType.Error + " | " + ex.Message);
+                HistoryLog.Add(MessageType.Error + " | " + ex.Message);
                 return false;
             }
         }
@@ -261,12 +289,12 @@ namespace LedCubeClient.CommunicationSystem
             try
             {
                 if(comPort.IsOpen) comPort.Close();
-                HistoryLog.Add("Type: " + MessageType.Normal + " | Port closed at " + DateTime.Now);
+                HistoryLog.Add(MessageType.Normal + " | Port closed at " + DateTime.Now);
                 return true;
             }
             catch (Exception e)
             {
-                HistoryLog.Add("Type: " + MessageType.Error + " | " + e.Message);
+                HistoryLog.Add(MessageType.Error + " | " + e.Message);
                 return false;
             }
         }
@@ -311,7 +339,7 @@ namespace LedCubeClient.CommunicationSystem
                 //user chose string
                 case TransmissionType.Text:
                     //display the data to the user
-                    HistoryLog.Add("Type: " + MessageType.Incoming + " | " + comPort.ReadExisting());
+                    HistoryLog.Add(MessageType.Incoming + " | " + comPort.ReadExisting());
                     break;
                 //user chose binary
                 case TransmissionType.Hex:
@@ -322,14 +350,22 @@ namespace LedCubeClient.CommunicationSystem
                     //read the data and store it
                     comPort.Read(comBuffer, 0, bytes);
                     //display the data to the user
-                    HistoryLog.Add("Type: " + MessageType.Incoming + " | " + ByteToHex(comBuffer));
+                    HistoryLog.Add(MessageType.Incoming + " | " + ByteToHex(comBuffer));
                     break;
                 default:
                     //display the data to the user
-                    HistoryLog.Add("Type: " + MessageType.Incoming + " | " + comPort.ReadExisting());
+                    HistoryLog.Add(MessageType.Incoming + " | " + comPort.ReadExisting());
                     break;
             }
         }
         #endregion
+
+        static int newsTaken;
+        public static IEnumerable<string> GetNews()
+        {
+            var news = HistoryLog.Skip(newsTaken).ToArray();
+            newsTaken += news.Length;
+            return news;
+        }
     }
 }

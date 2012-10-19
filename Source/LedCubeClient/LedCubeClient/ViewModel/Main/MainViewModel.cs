@@ -1,18 +1,22 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.Timers;
 using System.Windows.Input;
+using System.Windows.Threading;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
+using GalaSoft.MvvmLight.Messaging;
 using LedCubeClient.CommunicationSystem;
+using LedCubeClient.ViewModel.Common;
 
-namespace LedCubeClient.ViewModel
+namespace LedCubeClient.ViewModel.Main
 {
     /// <summary>
     /// This class contains properties that the main View can data bind to.
     /// </summary>
     public partial class MainViewModel : ViewModelBase
     {
-        private readonly AnimationHandler animationHandler = new AnimationHandler();
         private CommunicationManager communicationManager = new CommunicationManager();
         private readonly IProtocol protocol = new Rfc1055();
 
@@ -155,28 +159,48 @@ namespace LedCubeClient.ViewModel
         public MainViewModel()
         {
             InitGui();
+            Messenger.Default.Register<Message>(this, HandleMessage);
+        }
+
+        private void HandleMessage(Message msg)
+        {
+            CommunicationMessages.Add(msg.Text);
+            if(msg.Sender == SenderType.Menu)
+            {
+                FrameControllerEnable = msg.Status;
+            }
         }
 
         private void InitGui()
         {
             CommunicationMessages = new ObservableCollection<string>();
-            CommunicationManager.HistoryLog.CollectionChanged += HistoryLogCollectionChanged;
+            CommunicationManager.HistoryLog.CollectionChanged += HistoryChanged;
 
             //Binds the attribute Onclick to method
             OpenCloseConnCommand = new RelayCommand(OpenCloseConnection, () => true);
 
             InitFrameCommands();
         }
-
-
-        void HistoryLogCollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        
+        private void HistoryChanged(object sender, NotifyCollectionChangedEventArgs args)
         {
-            foreach (string item in e.NewItems)
+            if(Dispatcher.CurrentDispatcher.CheckAccess())
             {
-                CommunicationMessages.Add(item);
-            }
+                Dispatcher.CurrentDispatcher.Invoke((Action)(() =>
+                {
+                    foreach (string item in args.NewItems)
+                    {
+                        CommunicationMessages.Add(item);
+                    }
+                }), DispatcherPriority.Render, null);
+            }else
+            {
+                foreach (string item in args.NewItems)
+                {
+                    CommunicationMessages.Add(item);
+                }
+            }       
         }
-
 
         private void OpenCloseConnection()
         {
