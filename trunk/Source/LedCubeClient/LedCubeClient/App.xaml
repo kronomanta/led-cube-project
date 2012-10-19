@@ -6,7 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
-    xmlns:ViewModel="clr-namespace:LedCubeClient.ViewModel" StartupUri="Main.xaml">
+    xmlns:ViewModel="clr-namespace:LedCubeClient.ViewModel" StartupUri="View\MainView.xaml">
     <Application.Resources>
         <ViewModel:ViewModelLocator x:Key="Locator" d:IsDataSource="True" />
     </Application.Resources>

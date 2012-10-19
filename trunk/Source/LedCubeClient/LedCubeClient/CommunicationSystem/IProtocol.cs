@@ -7,5 +7,7 @@ namespace LedCubeClient.CommunicationSystem
     {
         public SendCharDel SendChar;
         public ReadCharDel ReadChar;
+        public virtual void SendPacket(string p){}
+        public virtual void SendPacket(char[] p, int len){}
     }
 }

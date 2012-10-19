@@ -9,7 +9,12 @@ namespace LedCubeClient.CommunicationSystem
         const char ESC_END = '\u0334';    /* ESC ESC_END means END data byte */
         const char ESC_ESC = '\u0335';    /* ESC ESC_ESC means ESC data byte */
 
-        public void SendPacket(char[] p, int len)
+        public override void SendPacket(string p)
+        {
+            SendPacket(p.ToCharArray(),p.Length);    
+        }
+
+        public override void SendPacket(char[] p, int len)
         {
             if (SendChar == null) return;
             /* send an initial END character to flush out any data that may
