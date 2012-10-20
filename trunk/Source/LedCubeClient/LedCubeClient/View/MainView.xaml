@@ -43,8 +43,8 @@
                     </ListBox.ItemTemplate>
                 </ListBox>
             </GroupBox>
-            <GroupBox Grid.Column="1" Header="Comm. Options" HorizontalAlignment="Stretch"
-                      Name="groupBox1" VerticalAlignment="Top" >
+            <GroupBox Grid.Column="1"  Header="Comm. Options" HorizontalAlignment="Stretch"
+                        Name="groupBox1" VerticalAlignment="Top" >
                 <StackPanel>
                     <Label Content="Port"/>
                     <ComboBox Name="cbPort" SelectedItem="{Binding PortName}" ItemsSource="{Binding PortNames}" SelectedIndex="0"/>
@@ -58,16 +58,27 @@
                     <ComboBox Name="cbDataBits" SelectedItem="{Binding DataBit}" ItemsSource="{Binding DataBitValues}" SelectedIndex="1" />
                 </StackPanel>
             </GroupBox>
-            <GroupBox Grid.Column="2" Header="Message Header" HorizontalAlignment="Stretch">
-                <StackPanel >
-                    <RadioButton IsChecked="{Binding Path=MessageHeader, Converter={StaticResource enumBooleanConverter}, ConverterParameter=ToRealTime}">Real time</RadioButton>
-                    <RadioButton IsChecked="{Binding Path=MessageHeader, Converter={StaticResource enumBooleanConverter}, ConverterParameter=ToMemory}">Memory</RadioButton>
-                </StackPanel>
-            </GroupBox>
+            <StackPanel Grid.Column="2">
+                <GroupBox IsEnabled="{Binding IsPortOpen}" Header="Message Type" HorizontalAlignment="Stretch">
+                    <StackPanel >
+                        <RadioButton IsChecked="{Binding Path=MessageType, Converter={StaticResource enumBooleanConverter}, ConverterParameter=ToRealTime}">Real time</RadioButton>
+                        <RadioButton IsChecked="{Binding Path=MessageType, Converter={StaticResource enumBooleanConverter}, ConverterParameter=ToMemory}">Memory</RadioButton>
+                        <RadioButton IsChecked="{Binding Path=MessageType, Converter={StaticResource enumBooleanConverter}, ConverterParameter=Control}">Control</RadioButton>
+                        <RadioButton IsChecked="{Binding Path=MessageType, Converter={StaticResource enumBooleanConverter}, ConverterParameter=Reserved}">Reserved</RadioButton>
+                    </StackPanel>
+                </GroupBox>
+                <GroupBox IsEnabled="{Binding IsControlTypeGroupBoxIsEnabled}" Header="Control Type" HorizontalAlignment="Stretch">
+                    <StackPanel >
+                        <RadioButton IsChecked="{Binding Path=ControlType, Converter={StaticResource enumBooleanConverter}, ConverterParameter=Eeprom}">To EEPROM</RadioButton>
+                        <RadioButton IsChecked="{Binding Path=ControlType, Converter={StaticResource enumBooleanConverter}, ConverterParameter=Pc}">From PC</RadioButton>
+                    </StackPanel>
+                </GroupBox>
+            </StackPanel>
         </Grid>
         <DockPanel Grid.Column="0" Grid.Row="2" LastChildFill="False" Margin="10,0,10,0"  HorizontalAlignment="Stretch">
-            <Button Content="{Binding ConnectionButtonText}" Command="{Binding OpenCloseConnCommand}" IsEnabled="{Binding FrameControllerEnable}" DockPanel.Dock="Left" />
-            <DockPanel Name="FrameController" IsEnabled="{Binding IsPortOpen}" LastChildFill="False" >
+            <Button Content="{Binding ConnectionButtonText}" Command="{Binding OpenCloseConnCommand}" DockPanel.Dock="Left" />
+            <Button Content="Set control" Command="{Binding SendControlCommand}" IsEnabled="{Binding IsControlTypeGroupBoxIsEnabled}" Margin="5,0,5,0"/>
+            <DockPanel Name="FrameController" IsEnabled="{Binding IsFrameControllerEnabled}" LastChildFill="False" >
                 <Button Content="&lt;&lt;" Command="{Binding FrameFirstCommand}" Margin="5,0,5,0" />
                 <Button Content="&lt;" Command="{Binding FramePrevCommand}" Margin="0,0,5,0"/>
                 <Button Content="Play" Command="{Binding FramePlayCommand}" Margin="0,0,5,0"/>
@@ -75,7 +86,6 @@
                 <Button Content="&gt;" Command="{Binding FrameNextCommand}" Margin="0,0,5,0"/>
                 <Button Content="&gt;&gt;" Command="{Binding FrameLastCommand}" Margin="0,0,5,0"/>
                 <Button Content="Send one frame" Command="{Binding SendFrameCommand}" Margin="0,0,5,0"/>
-                <Button Content="Send jim" Command="{Binding SendStringCommand}" Margin="0,0,5,0"/>
                 <CheckBox Content="Repeat animation" Command="{Binding FrameRepeatCommand}" Height="16" Width="114" />
             </DockPanel>
             <TextBlock Text="{Binding CurrentAllFrame}" Width="40" DockPanel.Dock="Right" IsEnabled="False" TextAlignment="Right" Background="GhostWhite"></TextBlock>

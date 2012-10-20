@@ -27,9 +27,15 @@ namespace LedCubeClient.ViewModel.Main
         private string dataBit;
         private string baudRate;
         private string statusbar;
-        private bool frameControllerEnable;
-        private MessageHeader messageHeader;
+        private bool isFrameControllerEnabled;
+        private MessageType messageType;
+        private ControlType controlType;
+        
+
         #region Properties
+
+        public bool IsControlTypeGroupBoxIsEnabled { get; set; }
+
         public bool IsPortOpen
         {
             get { return isPortOpen; }
@@ -108,14 +114,29 @@ namespace LedCubeClient.ViewModel.Main
             }
         }
 
-        public MessageHeader MessageHeader
+        
+        public MessageType MessageType
         {
-            get { return messageHeader; }
+            get { return messageType; }
             set
             {
-                if (messageHeader == value) return;
-                messageHeader = value;
-                RaisePropertyChanged("MessageHeader");
+                if (messageType == value) return;
+                messageType = value;
+                RaisePropertyChanged("MessageType");
+
+                IsControlTypeGroupBoxIsEnabled = messageType == MessageType.Control;
+                RaisePropertyChanged("IsControlTypeGroupBoxIsEnabled");
+            }
+        }
+
+        public ControlType ControlType
+        {
+            get { return controlType; }
+            set
+            {
+                if (controlType == value) return;
+                controlType = value;
+                RaisePropertyChanged("ControlType");
             }
         }
 
@@ -134,14 +155,14 @@ namespace LedCubeClient.ViewModel.Main
             get { return IsPortOpen ? "Close port" : "Open port"; }
         }
 
-        public bool FrameControllerEnable
+        public bool IsFrameControllerEnabled
         {
-            get { return frameControllerEnable; }
+            get { return isFrameControllerEnabled; }
             set
             {
-                if (frameControllerEnable == value) return;
-                frameControllerEnable = value;
-                RaisePropertyChanged("FrameControllerEnable");
+                if (isFrameControllerEnabled == value) return;
+                isFrameControllerEnabled = value;
+                RaisePropertyChanged("IsFrameControllerEnabled");
             }
         }
 
@@ -177,7 +198,7 @@ namespace LedCubeClient.ViewModel.Main
             CommunicationMessages.Add(msg.Text);
             if(msg.Sender == SenderType.Menu)
             {
-                FrameControllerEnable = msg.Status;
+                IsFrameControllerEnabled = msg.Status;
             }
         }
 

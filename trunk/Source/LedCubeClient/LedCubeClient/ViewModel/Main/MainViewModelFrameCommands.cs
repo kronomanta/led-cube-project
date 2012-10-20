@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
 using GalaSoft.MvvmLight.Command;
+using LedCubeClient.CommunicationSystem;
 using LedCubeClient.ViewModel.Common;
 
 namespace LedCubeClient.ViewModel.Main
@@ -33,8 +34,7 @@ namespace LedCubeClient.ViewModel.Main
         public ICommand FramePlayCommand { get; set; }
         public ICommand FrameStopCommand { get; set; }
         public ICommand FrameRepeatCommand { get; set; }
-        
-        public ICommand SendStringCommand { get; set; }
+        public ICommand SendControlCommand { get; set; }
         public ICommand SendFrameCommand { get; set; }
 
         public void InitFrameCommands()
@@ -47,26 +47,29 @@ namespace LedCubeClient.ViewModel.Main
             FrameStopCommand = new RelayCommand(StopAnimation);
             FrameRepeatCommand = new RelayCommand(() => { GlobalClasses.AnimationHandler.Repeat = !GlobalClasses.AnimationHandler.Repeat; });
             SendFrameCommand = new RelayCommand(SendFrame,()=>true);
-            SendStringCommand = new RelayCommand(SendString, () => true);
+            SendControlCommand = new RelayCommand(SendControl, () => true);
             GlobalClasses.AnimationHandler.CurrentFrameChanged += frame => CurrentAllFrame = (frame + 1) + "/" + GlobalClasses.AnimationHandler.AllFrame;
         }
 
-        private void SendString()
+        private void SendControl()
         {
-            communicationManager.WriteDataWithProtocol("jim", messageHeader);   
+            if(MessageType == MessageType.Control)
+            {
+                communicationManager.WriteDataWithProtocol(new byte[0], new MessageHeader(MessageType,controlType));    
+            }
         }
+
 
         private void SendFrame()
         {
-            var frame = new byte[64];
-            for(int i=0;i<GlobalClasses.AnimationHandler.GetCurrentFrame().Length;i++)
+            var original = GlobalClasses.AnimationHandler.GetCurrentFrame();
+            var frame = new byte[original.Length];
+            for(int i=0;i<original.Length;i++)
             {
-                frame[i] = GlobalClasses.AnimationHandler.GetCurrentFrame()[i];
+                frame[i] = original[i];
             }
-
             
-            communicationManager.WriteDataWithProtocol(frame, messageHeader);
-
+            communicationManager.WriteDataWithProtocol(frame, new MessageHeader(MessageType,frame.Length));
         }
 
 
