@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
-using System.Timers;
 using System.Windows.Input;
 using System.Windows.Threading;
 using GalaSoft.MvvmLight;
@@ -29,7 +28,7 @@ namespace LedCubeClient.ViewModel.Main
         private string baudRate;
         private string statusbar;
         private bool frameControllerEnable;
-
+        private MessageHeader messageHeader;
         #region Properties
         public bool IsPortOpen
         {
@@ -106,6 +105,17 @@ namespace LedCubeClient.ViewModel.Main
                 if (statusbar == value) return;
                 statusbar = value;
                 RaisePropertyChanged("Statusbar");
+            }
+        }
+
+        public MessageHeader MessageHeader
+        {
+            get { return messageHeader; }
+            set
+            {
+                if (messageHeader == value) return;
+                messageHeader = value;
+                RaisePropertyChanged("MessageHeader");
             }
         }
 

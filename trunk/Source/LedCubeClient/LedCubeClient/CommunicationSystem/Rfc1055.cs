@@ -4,23 +4,29 @@ namespace LedCubeClient.CommunicationSystem
 {
     public class Rfc1055: IProtocol
     {
-        const char END = '\u0300';    /* indicates end of packet */
-        const char ESC = '\u0333';    /* indicates byte stuffing */
-        const char ESC_END = '\u0334';    /* ESC ESC_END means END data byte */
-        const char ESC_ESC = '\u0335';    /* ESC ESC_ESC means ESC data byte */
-
-        public override void SendPacket(string p)
+        private const byte END = 0xc0;   /*0300 indicates end of packet */
+        private const byte ESC = 0xdb;   /*0333 indicates byte stuffing */
+        private const byte ESC_END = 0xdc; /*0334 ESC ESC_END means END data byte */
+        private const byte ESC_ESC = 0xdd; /*0335 ESC ESC_ESC means ESC data byte */
+        
+        public override void SendPacket(string p, MessageHeader header)
         {
-            SendPacket(p.ToCharArray(),p.Length);    
+            var bytes = new byte[p.Length];
+            for (int i = 0; i < bytes.Length;i++ )
+            {
+                bytes[i] = (byte)p[i];
+            }
+            SendPacket(bytes, bytes.Length, header);    
         }
 
-        public override void SendPacket(char[] p, int len)
+        public override void SendPacket(byte[] p, int len, MessageHeader header )
         {
-            if (SendChar == null) return;
+            if (SendByte == null) return;
             /* send an initial END character to flush out any data that may
             * have accumulated in the receiver due to line noise
             */
-            SendChar(END);
+            SendByte(END);
+            SendByte((byte)(header + len-1));  //upper 2 bits = header, lower 6 bits = length-1
             /* for each byte in the packet, send the appropriate character sequence */
             for (int i = 0; i < len; i++)
             {
@@ -31,8 +37,8 @@ namespace LedCubeClient.CommunicationSystem
                     * receiver think we sent an END
                     */
                     case END:
-                        SendChar(ESC);
-                        SendChar(ESC_END);
+                        SendByte(ESC);
+                        SendByte(ESC_END);
                         break;
 
                     /* if it’s the same code as an ESC character,
@@ -40,14 +46,14 @@ namespace LedCubeClient.CommunicationSystem
                     * to make the receiver think we sent an ESC
                     */
                     case ESC:
-                        SendChar(ESC);
-                        SendChar(ESC_ESC);
+                        SendByte(ESC);
+                        SendByte(ESC_ESC);
                         break;
 
                     /* otherwise, we just send the character
                 */
                     default:
-                        SendChar(p[i]);
+                        SendByte(p[i]);
                         break;
                 }
             }
@@ -59,12 +65,12 @@ namespace LedCubeClient.CommunicationSystem
         *      be truncated.
         *      Returns the number of bytes stored in the buffer.
         */
-        public char[] RecvPacket(int len)
+        public byte[] RecvPacket(int len)
         {
-            if (ReadChar == null) return null;
+            if (ReadByte == null) return null;
 
-            var p = new List<char>();
-            char c;
+            var p = new List<byte>();
+            byte c;
             int received = 0;
 
             /* sit in a loop reading bytes until we put together
@@ -75,7 +81,7 @@ namespace LedCubeClient.CommunicationSystem
             while (true)
             {
                 /* get a character to process*/
-                c = ReadChar();
+                c = ReadByte();
 
                 /* handle bytestuffing if necessary*/
                 switch (c)
@@ -94,7 +100,7 @@ namespace LedCubeClient.CommunicationSystem
                     * what to store in the packet based on that.
                     */
                     case ESC:
-                        c = ReadChar();
+                        c = ReadByte();
                         /* if "c" is not one of these two, then we have a protocol violation.  
                          * The best bet seems to be to leave the byte alone and 
                          * just stuff it into the packet */
