@@ -26,7 +26,9 @@ namespace LedCubeClient.CommunicationSystem
             * have accumulated in the receiver due to line noise
             */
             SendByte(END);
-            SendByte((byte)(header + len-1));  //upper 2 bits = header, lower 6 bits = length-1
+            SendByte(header.ToByte());
+
+            
             /* for each byte in the packet, send the appropriate character sequence */
             for (int i = 0; i < len; i++)
             {
