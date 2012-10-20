@@ -100,8 +100,8 @@ namespace LedCubeClient.CommunicationSystem
             {
                 if (protocol == value) return;
                 protocol = value;
-                protocol.ReadChar = ReadChar;
-                protocol.SendChar = WriteChar;
+                protocol.ReadByte = ReadByte;
+                protocol.SendByte = WriteByte;
             }
         }
 
@@ -143,7 +143,25 @@ namespace LedCubeClient.CommunicationSystem
         #endregion
 
         #region WriteDataWithProtocol
-        public void WriteDataWithProtocol(string msg)
+        public void WriteDataWithProtocol(byte[] data,MessageHeader header)
+        {
+            try
+            {
+                //first make sure the port is open
+                //if its not open then open it
+                if (!comPort.IsOpen)
+                    comPort.Open();
+                if (!comPort.IsOpen) throw new Exception("Failed to open the port " + PortName);
+                //send the message tothe port
+                Protocol.SendPacket(data,data.Length,header);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(MessageType.Error + " | " + ex.Message);
+            }
+        }
+
+        public void WriteDataWithProtocol(string msg, MessageHeader header)
         {
             try
             {
@@ -153,7 +171,7 @@ namespace LedCubeClient.CommunicationSystem
                     comPort.Open();
                 if(!comPort.IsOpen) throw new Exception("Failed to open the port " + PortName);
                 //send the message tothe port
-                Protocol.SendPacket(msg);
+                Protocol.SendPacket(msg, header);
             }catch(Exception ex)
             {
                 throw new Exception(MessageType.Error + " | " + ex.Message);
@@ -161,16 +179,15 @@ namespace LedCubeClient.CommunicationSystem
         }
         #endregion
 
-        #region Read/Write char
-
-        private void WriteChar(char c)
+        #region Read/Write 
+        private void WriteByte(byte c)
         {
-            comPort.Write(new[]{c},0,1);
+            comPort.Write(new []{c},0,1);
         }
 
-        private char ReadChar()
+        private byte ReadByte()
         {
-            return (char)comPort.ReadChar();
+            return (byte)comPort.ReadByte();
         }
         #endregion
 
@@ -317,7 +334,9 @@ namespace LedCubeClient.CommunicationSystem
 
         public static string[] GetBaudRateValues()
         {
-            return new[]{"300","600","1200","2400","4800","9600","14400","19200","28800","36000","115000"};
+            return new[]{"300","600","1200","2400","4800","9600","14400",
+             "19200","28800","36000","38400","57600","115000","115200"};
+
         }
 
         public static string[] GetDataBitValues()

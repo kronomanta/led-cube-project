@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Globalization;
 using System.Threading;
 using System.Windows;
 using System.Windows.Input;
@@ -34,7 +33,8 @@ namespace LedCubeClient.ViewModel.Main
         public ICommand FramePlayCommand { get; set; }
         public ICommand FrameStopCommand { get; set; }
         public ICommand FrameRepeatCommand { get; set; }
-
+        
+        public ICommand SendStringCommand { get; set; }
         public ICommand SendFrameCommand { get; set; }
 
         public void InitFrameCommands()
@@ -47,16 +47,26 @@ namespace LedCubeClient.ViewModel.Main
             FrameStopCommand = new RelayCommand(StopAnimation);
             FrameRepeatCommand = new RelayCommand(() => { GlobalClasses.AnimationHandler.Repeat = !GlobalClasses.AnimationHandler.Repeat; });
             SendFrameCommand = new RelayCommand(SendFrame,()=>true);
+            SendStringCommand = new RelayCommand(SendString, () => true);
             GlobalClasses.AnimationHandler.CurrentFrameChanged += frame => CurrentAllFrame = (frame + 1) + "/" + GlobalClasses.AnimationHandler.AllFrame;
+        }
+
+        private void SendString()
+        {
+            communicationManager.WriteDataWithProtocol("jim", messageHeader);   
         }
 
         private void SendFrame()
         {
-            foreach (int frame in GlobalClasses.AnimationHandler.GetCurrentFrame())
+            var frame = new byte[64];
+            for(int i=0;i<GlobalClasses.AnimationHandler.GetCurrentFrame().Length;i++)
             {
-                //communicationManager.WriteData(frame.ToString(CultureInfo.InvariantCulture));
-                communicationManager.WriteDataWithProtocol(frame.ToString(CultureInfo.InvariantCulture));
+                frame[i] = GlobalClasses.AnimationHandler.GetCurrentFrame()[i];
             }
+
+            
+            communicationManager.WriteDataWithProtocol(frame, messageHeader);
+
         }
 
 

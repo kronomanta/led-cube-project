@@ -112,6 +112,8 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="CommunicationSystem\MessageHeader.cs" />
+    <Compile Include="View\Common\EnumBooleanConverter.cs" />
     <Compile Include="ViewModel\Common\GlobalClasses.cs" />
     <Compile Include="ViewModel\Common\Message.cs" />
     <Compile Include="ViewModel\Common\SenderType.cs" />

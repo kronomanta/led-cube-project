@@ -13,7 +13,7 @@ namespace LedCubeClient.ViewModel.Menu
 
         public MenuViewModel()
         {
-            LoadAnimationCommand = new RelayCommand(LoadAnimation, () => true);
+            LoadAnimationCommand = new RelayCommand(LoadAnimation, () => true);            
         }
 
         private static void LoadAnimation()
