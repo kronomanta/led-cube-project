@@ -1,0 +1,1 @@
+It's a hobby project. A group of real and student engineers makes a LED cube with their very own controlling system.
